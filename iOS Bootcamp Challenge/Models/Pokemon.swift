@@ -27,13 +27,13 @@ enum PokemonType: String, Decodable, CaseIterable, Identifiable {
 
 }
 
-struct Pokemon: Decodable, Equatable {
+struct Pokemon: Decodable {
 
     let id: Int
     let name: String
     let image: String?
-    let types: [String]?
-    let abilities: [String]?
+    let types: [TypeItem]?
+    let abilities: [AbilityItem]?
     let weight: Float
     let baseExperience: Int
 
@@ -61,16 +61,30 @@ struct Pokemon: Decodable, Equatable {
         let other = try sprites.nestedContainer(keyedBy: CodingKeys.self, forKey: .other)
         let officialArtWork = try other.nestedContainer(keyedBy: CodingKeys.self, forKey: .officialArtwork)
         self.image = try? officialArtWork.decode(String.self, forKey: .frontDefault)
-
-        // TODO: Decode list of types & abilities
-
-        self.types = []
-        self.abilities = []
+        self.types = try container.decode([TypeItem].self, forKey: .types)
+        self.abilities = try container.decode([AbilityItem].self, forKey: .abilities)
 
         self.weight = try container.decode(Float.self, forKey: .weight)
         self.baseExperience = try container.decode(Int.self, forKey: .baseExperience)
     }
 
+}
+
+// MARK: - TypeAbility For Pokemon Type or Ability
+struct TypeAbility: Codable {
+    let name: String
+}
+
+struct TypeItem: Decodable {
+    let type: TypeAbility
+}
+
+struct AbilityItem: Decodable {
+    let ability: TypeAbility
+
+        enum CodingKeys: String, CodingKey {
+            case ability
+        }
 }
 
 extension Pokemon {
@@ -81,13 +95,13 @@ extension Pokemon {
 
     func primaryType() -> String? {
         guard let primary = types?.first else { return nil }
-        return primary.capitalized
+        return primary.type.name.capitalized
     }
 
     func secondaryType() -> String? {
         let index = 1
         guard index < types?.count ?? 0 else { return nil }
-        return types?[index].capitalized
+        return types?[index].type.name.capitalized
     }
 
 }

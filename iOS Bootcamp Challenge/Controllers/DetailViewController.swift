@@ -77,7 +77,13 @@ class DetailViewController: UIViewController {
         // abilities
         if let abilities = pokemon.abilities {
             let title = "Abilities"
-            let description = abilities.joined(separator: "\n")
+            var description = ""
+            
+            for ability in abilities {
+                print(ability.ability.name)
+                description = description + ability.ability.name + "\n"
+            }
+            
             let item = Item(title: title, description: description)
             items.append(item)
         }
@@ -116,7 +122,12 @@ class DetailViewController: UIViewController {
         }
 
         guard let types = pokemon.types else { return }
-        buildTypes(types)
+        var pokemonTypes = [String]()
+        
+        for type in types {
+            pokemonTypes.append(type.type.name)
+        }
+        buildTypes(pokemonTypes)
     }
 
     private func setupUI() {
