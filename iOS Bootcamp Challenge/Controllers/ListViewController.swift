@@ -94,16 +94,23 @@ class ListViewController: UICollectionViewController {
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PokeCell.identifier, for: indexPath) as? PokeCell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PokeCell.identifier, for: indexPath) as? PokeCell
         else { preconditionFailure("Failed to load collection view cell") }
         cell.pokemon = resultPokemons[indexPath.item]
         return cell
     }
 
     // MARK: - Navigation
-
-    // TODO: Handle navigation to detail view controller
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "goDetailViewControllerSegue" {
+            let detailViewController = segue.destination as! DetailViewController
+            let cell = sender as! PokeCell
+            let indexPath = collectionView.indexPath(for: cell)
+            let pokemon = resultPokemons[(indexPath?.row)!]
+            detailViewController.pokemon = pokemon
+        }
+    }
 
     // MARK: - UI Hooks
 
@@ -111,7 +118,6 @@ class ListViewController: UICollectionViewController {
         shouldShowLoader = true
 
         var pokemons: [Pokemon] = []
-
         let myGroup = DispatchGroup()
         
         myGroup.enter()
