@@ -23,55 +23,59 @@ class ListViewController: UICollectionViewController {
         return searchController
     }()
 
-    private var isFirstLauch: Bool = true
-
-    // TODO: Add a loading indicator when the app first launches and has no pokemons
-
+    private var isFirstLaunch: Bool = true
+    private var activityIndicator = UIActivityIndicatorView(style: .large)
     private var shouldShowLoader: Bool = true
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         setup()
         setupUI()
     }
-
+    
     // MARK: Setup
-
+    
     private func setup() {
         title = "Pokédex"
-
+        
         // Customize navigation bar.
         guard let navbar = self.navigationController?.navigationBar else { return }
-
+        
         navbar.tintColor = .black
         navbar.titleTextAttributes = [.foregroundColor: UIColor.black]
         navbar.prefersLargeTitles = true
-
+        
         // Set up the searchController parameters.
         navigationItem.searchController = searchController
         definesPresentationContext = true
-
+        
         refresh()
     }
-
+    
     private func setupUI() {
-
+        
         // Set up the collection view.
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.backgroundColor = .white
         collectionView.alwaysBounceVertical = true
         collectionView.indicatorStyle = .white
-
+        
         // Set up the refresh control as part of the collection view when it's pulled to refresh.
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
         collectionView.refreshControl = refreshControl
         collectionView.sendSubviewToBack(refreshControl)
+        
+        // Set up the activity indicator view
+        self.view.addSubview(activityIndicator)
+        activityIndicator.color = .red
+        activityIndicator.center = view.center
+        activityIndicator.startAnimating()
     }
-
+    
     // MARK: - UISearchViewController
-
+    
     private func filterContentForSearchText(_ searchText: String) {
         // filter with a simple contains searched text
         resultPokemons = pokemons
@@ -90,26 +94,27 @@ class ListViewController: UICollectionViewController {
     // MARK: - UICollectionViewDataSource
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return resultPokemons.count
+        return pokemons.count
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PokeCell.identifier, for: indexPath) as? PokeCell
         else { preconditionFailure("Failed to load collection view cell") }
-        cell.pokemon = resultPokemons[indexPath.item]
+        cell.pokemon = pokemons[indexPath.item]
         return cell
     }
 
     // MARK: - Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "goDetailViewControllerSegue" {
-            let detailViewController = segue.destination as! DetailViewController
-            let cell = sender as! PokeCell
+        guard
+            segue.identifier == "goDetailViewControllerSegue",
+            let detailViewController = segue.destination as? DetailViewController,
+            let cell = sender as? PokeCell,
             let indexPath = collectionView.indexPath(for: cell)
-            let pokemon = resultPokemons[(indexPath?.row)!]
-            detailViewController.pokemon = pokemon
-        }
+        else { return }
+        let pokemon = pokemons[indexPath.row]
+        detailViewController.pokemon = pokemon
     }
 
     // MARK: - UI Hooks
@@ -136,8 +141,8 @@ class ListViewController: UICollectionViewController {
             }
             
             myGroup.notify(queue: .main) {
+                self.activityIndicator.stopAnimating()
                 self.didRefresh()
-                print("finished all tasks")
             }
         })
     }
