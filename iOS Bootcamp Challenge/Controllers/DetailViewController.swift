@@ -80,7 +80,6 @@ class DetailViewController: UIViewController {
             var description = ""
             
             for ability in abilities {
-                print(ability.ability.name)
                 description = description + ability.ability.name + "\n"
             }
             
